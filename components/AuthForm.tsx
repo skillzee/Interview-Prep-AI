@@ -5,37 +5,56 @@ import { useForm } from "react-hook-form";
 import { z } from "zod";
 
 import { Button } from "@/components/ui/button";
-import {
-  Form,
-  FormControl,
-  FormDescription,
-  FormField,
-  FormItem,
-  FormLabel,
-  FormMessage,
-} from "@/components/ui/form";
+import {  Form} from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
 import Image from "next/image";
 import Link from "next/link";
+import { toast } from "sonner";
+import FormField from "./FormField";
+import { useRouter } from "next/navigation";
 
-const formSchema = z.object({
-  username: z.string().min(2).max(50),
-});
+
+const authFormSchema = (type: FormType)=>{
+  return z.object({
+    name: type === 'sign-up' ? z.string().min(3): z.string().optional(),
+    email: z.string().email(),
+    password: z.string().min(3)
+
+  })
+}
 
 const AuthForm = ({type} : {type: FormType}) => {
+
+  const router = useRouter()
+
   // 1. Define your form.
+  const formSchema = authFormSchema(type)
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
     defaultValues: {
-      username: "",
+      name: "",
+      email: "",
+      password: "",
     },
   });
 
   // 2. Define a submit handler.
   function onSubmit(values: z.infer<typeof formSchema>) {
-    // Do something with the form values.
-    // ✅ This will be type-safe and validated.
-    console.log(values);
+    try {
+      if(type === 'sign-up'){
+        toast.success('Account created successfully')
+        router.push('/sign-in')
+        
+      }else{
+        toast.success('Signed in successfully')
+        router.push('/')
+        
+      }
+    } catch (error) {
+      console.log(error);
+      toast.error(`There was an error: ${error}`)
+      
+    }
   }
 
 
@@ -53,9 +72,11 @@ const AuthForm = ({type} : {type: FormType}) => {
 
         <Form {...form}>
           <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6 mt-4 form w-full">
-            {!isSignIn && <p>Name</p>}
-            <p>Email</p>
-            <p>Password</p>
+            {!isSignIn && (
+              <FormField control={form.control} name='name' label="Name" placeholder="John Doe"/>
+            )}
+            <FormField control={form.control} name='email' label="Email" placeholder="abc@example.com"/>
+            <FormField control={form.control} name='password' label="Password" placeholder="*******" type="password"/>
 
 
             <Button className="btn" type="submit">{isSignIn ? 'Sign In' : 'Create an Account'}</Button>
