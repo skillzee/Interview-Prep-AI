@@ -121,51 +121,5 @@ export async function isAuthenticated(){
 }
 
 
-export async function getInterviewsByUserId(
-    userId: string
-  ): Promise<Interview[] | null> {
-    const interviews = await db
-      .collection("interviews")
-      .where("userId", "==", userId)
-      .orderBy("createdAt", "desc")
-      .get();
-  
-    return interviews.docs.map((doc) => ({
-      id: doc.id,
-      ...doc.data(),
-    })) as Interview[];
-  }
-
-
-
-  export async function getLatestInterviews(
-    params: GetLatestInterviewsParams
-  ): Promise<Interview[] | null> {
-    const { userId, limit = 20 } = params;
-  
-    const snapshot = await db
-      .collection("interviews")
-      .where("finalized", "==", true)
-      .orderBy("createdAt", "desc")
-      .limit(50)
-      .get();
-  
-    const allDocs = snapshot.docs.map((doc) => ({
-      id: doc.id,
-      ...doc.data(),
-    }));
-  
-    console.log("Fetched finalized interviews:", allDocs);
-    console.log("Current userId:", userId);
-  
-    const filtered = allDocs.filter(
-      (interview: any) => interview.userId !== userId
-    );
-  
-    console.log("Filtered interviews (others only):", filtered);
-  
-    return filtered.slice(0, limit) as Interview[];
-  }
-  
 
 
